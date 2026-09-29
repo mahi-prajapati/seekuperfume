@@ -1,0 +1,78 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#FAF8F6">
+  <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+  <title>{% block title %}SEEKUPERFUMES — Seek Your Signature{% endblock %}</title>
+  <meta name="description" content="{% block description %}Discover modern fragrances shaped around mood, memory and personal signature.{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages.css' %}">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+  <link rel="stylesheet" href="{% static 'css/polish.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body data-csrf="{{ csrf_token }}">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="offer">Complimentary shipping above ₹1,499 <span>·</span> Discovery sets from ₹599</div>
+  <header class="header">
+    <div class="header-main wrap">
+      <button class="icon-button menu-trigger" aria-label="Open menu" aria-controls="menu-drawer" aria-expanded="false"><span class="dots">•••</span></button>
+      <a class="logo" href="{% url 'home' %}" aria-label="SEEKUPERFUMES home">SEEKU<span>PERFUMES</span></a>
+      <nav class="utilities" aria-label="Utilities">
+        <button class="icon-button search-trigger" aria-label="Search"><svg><use href="#i-search"/></svg></button>
+        <a class="icon-button account-link" href="{% url 'account' %}" aria-label="Account"><svg><use href="#i-user"/></svg></a>
+        <a class="icon-button bag-link" href="{% url 'cart' %}" aria-label="Shopping bag with {{ cart_count }} items"><svg><use href="#i-bag"/></svg><b class="cart-count">{{ cart_count }}</b></a>
+      </nav>
+    </div>
+    <nav class="primary-nav" aria-label="Primary navigation">
+      <a href="{% url 'home' %}">Home</a><a href="{% url 'best_sellers' %}">Best sellers</a><a href="/gifting/">Gifting</a>
+      <a href="{% url 'shop_facet' 'him' %}">Shop by gender</a><a href="{% url 'shop_facet' 'date-night' %}">Shop by occasion</a>
+      <a href="{% url 'contact' %}">Contact us</a><a href="{% url 'track_order' %}">Track order</a>
+    </nav>
+  </header>
+
+  <aside id="menu-drawer" class="drawer menu-drawer" aria-hidden="true" aria-label="Main menu">
+    <button class="drawer-close icon-button" aria-label="Close menu"><svg><use href="#i-close"/></svg></button>
+    <p class="eyebrow">Explore the house</p><h2>What are you seeking?</h2>
+    <div class="drawer-grid">
+      <section><h3>Shop</h3><a href="{% url 'shop' %}">All perfumes</a><a href="{% url 'best_sellers' %}">Best sellers</a><a href="{% url 'new_arrivals' %}">New arrivals</a><a href="/discovery-sets/">Discovery sets</a><a href="/gifting/">Gift sets</a></section>
+      <section><h3>By character</h3><a href="{% url 'shop_facet' 'fresh' %}">Fresh</a><a href="{% url 'shop_facet' 'vanilla' %}">Vanilla</a><a href="{% url 'shop_facet' 'woody' %}">Woody</a><a href="{% url 'shop_facet' 'floral' %}">Floral</a><a href="{% url 'shop_facet' 'oud' %}">Oud</a></section>
+      <section><h3>Discover</h3><a href="{% url 'finder' %}">Fragrance finder</a><a href="/about/">Why we seek</a><a href="/journal/">Journal</a><a href="{% url 'contact' %}">Contact</a><a href="{% url 'track_order' %}">Track order</a></section>
+    </div>
+  </aside>
+
+  <dialog class="search-dialog">
+    <button class="dialog-close icon-button" aria-label="Close search"><svg><use href="#i-close"/></svg></button>
+    <p class="eyebrow">Find a fragrance</p>
+    <form action="{% url 'shop' %}" class="search-form"><svg><use href="#i-search"/></svg><input name="q" type="search" autocomplete="off" placeholder="Try vanilla, date night, woody…" aria-label="Search products"><button>Search</button></form>
+    <div class="search-suggestions"><small>Popular searches</small><a href="/shop/vanilla/">Vanilla</a><a href="/shop/fresh/">Fresh</a><a href="/shop/date-night/">Date night</a><a href="/shop/unisex/">Unisex</a></div>
+    <div class="instant-results" aria-live="polite"></div>
+  </dialog>
+  <div class="scrim"></div>
+
+  {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<div class="toast">{{ message }}</div>{% endfor %}</div>{% endif %}
+  <main id="main">{% block content %}{% endblock %}</main>
+
+  <section class="newsletter">
+    <div><p class="eyebrow">Private notes</p><h2>Enter your email<br>for the next scent.</h2></div>
+    <form class="newsletter-form"><label class="sr-only" for="newsletter-email">Your email address</label><div class="line-input"><input id="newsletter-email" name="email" type="email" placeholder="Your email address" required><button>Join the Seek List <span>→</span></button></div><label class="consent"><input type="checkbox" name="consent" value="1" required> I agree to receive thoughtful news and offers. Unsubscribe anytime.</label><p class="form-status" aria-live="polite"></p></form>
+  </section>
+  <footer class="footer">
+    <div class="footer-brand"><a class="logo" href="/">SEEKU<span>PERFUMES</span></a><p>Seek a mood. Seek a memory.<br>Seek your signature.</p></div>
+    <div><h3>Shop</h3><a href="/shop/">All perfumes</a><a href="/best-sellers/">Best sellers</a><a href="/new-arrivals/">New arrivals</a><a href="/gifting/">Gifting</a></div>
+    <div><h3>Discover</h3><a href="/shop/fresh/">Fresh</a><a href="/shop/vanilla/">Vanilla</a><a href="/shop/woody/">Woody</a><a href="/fragrance-finder/">Fragrance finder</a></div>
+    <div><h3>Help</h3><a href="/contact/">Contact</a><a href="/track-order/">Track order</a><a href="/faq/">FAQs</a><a href="/account/">My account</a></div>
+    <div class="footer-bottom"><span>© {% now 'Y' %} SEEKUPERFUMES</span><span>Crafted with intention in India.</span></div>
+  </footer>
+
+  <svg class="svg-sprite" aria-hidden="true"><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 4-7 8-7s7 2 8 7"/></symbol><symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 5.7c-2-2-5.2-2-7.2 0L12 7.3l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.1a5.1 5.1 0 0 0 0-7.2Z"/></symbol></svg>
+  <script src="{% static 'js/site.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body></html>
+

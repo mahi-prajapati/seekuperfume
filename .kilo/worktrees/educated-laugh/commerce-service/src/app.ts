@@ -1,0 +1,33 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import express from "express";
+import cookieParser from "cookie-parser";
+import compression from "compression";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import mongoSanitize from "express-mongo-sanitize";
+import { rateLimit } from "express-rate-limit";
+import { env } from "./config/env.js";
+import { databaseHealth } from "./config/db.js";
+import { errorHandler, requestContext } from "./utils/http.js";
+import authRoutes from "./routes/auth.js";
+import publicRoutes from "./routes/public.js";
+import adminRoutes from "./routes/admin.js";
+
+const root = path.dirname(fileURLToPath(import.meta.url));
+export const app = express();
+app.set("trust proxy", 1);
+app.set("view engine", "ejs"); app.set("views", path.join(root, "views"));
+app.use(requestContext, helmet({ contentSecurityPolicy: { directives: { "script-src": ["'self'"], "img-src": ["'self'", "data:", "https:"], "style-src": ["'self'", "https:"], "font-src": ["'self'", "https:"] } } }), cors({ origin: env.STOREFRONT_ORIGIN, credentials: true }), compression(), morgan("combined"), cookieParser(env.COOKIE_SECRET), express.json({ limit: "1mb" }), express.urlencoded({ extended: false, limit: "1mb" }), mongoSanitize());
+app.use("/assets", express.static(path.join(root, "public"), { maxAge: env.NODE_ENV === "production" ? "7d" : 0, immutable: env.NODE_ENV === "production" }));
+app.use("/api/auth", rateLimit({ windowMs: 15 * 60_000, limit: 10, standardHeaders: "draft-8" }), authRoutes);
+app.use("/api/v1", publicRoutes);
+app.use("/api/admin", rateLimit({ windowMs: 60_000, limit: 300, standardHeaders: "draft-8" }), adminRoutes);
+app.get("/health", async (_req, res) => { try { res.json({ status: "healthy", api: "healthy", mongodb: await databaseHealth(), timestamp: new Date().toISOString() }); } catch { res.status(503).json({ status: "degraded", api: "healthy", mongodb: { status: "disconnected" } }); } });
+app.get("/admin/login", (_req, res) => res.render("login"));
+app.get("/admin", (_req, res) => res.render("admin", { section: "dashboard" }));
+app.get("/admin/:section", (req, res) => res.render("admin", { section: String(req.params.section || "dashboard") }));
+app.use((_req, res) => res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Route not found." } }));
+app.use(errorHandler);
+

@@ -1,0 +1,9 @@
+{% load static %}<article class="product-card" data-product-card data-family="{{ product.fragrance_family|lower }}" data-gender="{{ product.gender }}">
+  <div class="product-visual crop-{{ product.image_key }}">
+    {% if product.badge %}<span class="badge">{{ product.badge }}</span>{% endif %}
+    <a href="{% url 'product_detail' product.slug %}" aria-label="View {{ product.name }}"><img src="{% static 'images/product-sheet.webp' %}" alt="{{ product.name }} perfume bottle with {{ product.top_notes }}" loading="lazy"></a>
+    <button class="wish-button" data-wishlist="{{ product.id }}" aria-label="Save {{ product.name }} to wishlist"><svg><use href="#i-heart"/></svg></button>
+  </div>
+  <div class="product-meta"><div class="rating">★ {{ product.average_rating }} <span>({{ product.reviews.count|default:'24' }})</span></div><p class="product-type">{{ product.get_gender_display }} · {{ product.fragrance_family }}</p><h3><a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a></h3><p class="notes">{{ product.top_notes }}</p><div class="price"><strong>₹{{ product.price|floatformat:0 }}</strong> <del>₹{{ product.mrp|floatformat:0 }}</del> <em>{{ product.discount_percentage }}% off</em></div><button class="button add-to-cart" data-add-cart="{{ product.id }}">Add to bag</button></div>
+</article>
+

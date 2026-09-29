@@ -1,0 +1,2 @@
+{% extends 'base.html' %}{% block title %}Discovery sets — SEEKUPERFUMES{% endblock %}{% block content %}<section class="page-hero"><p class="eyebrow">Try before the signature</p><h1>Discovery sets</h1><p>Explore the house in miniature. Find the bottle you’ll want to return to.</p></section><section class="section"><div class="product-grid">{% for product in products %}{% include 'store/_product_card.html' %}{% endfor %}</div></section>{% endblock %}
+

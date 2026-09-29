@@ -1,0 +1,91 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: seekuperfumes
+      POSTGRES_USER: seek
+      POSTGRES_PASSWORD: seek-local-only
+    volumes: [seek-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seek"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  web:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      DJANGO_DEBUG: "0"
+      SECRET_KEY: "replace-in-production"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DATABASE_URL: "postgres://seek:seek-local-only@db:5432/seekuperfumes"
+      COMMERCE_API_URL: "http://commerce:4100/api/v1"
+    depends_on:
+      db: {condition: service_healthy}
+    command: sh -c "python manage.py migrate && gunicorn seekuperfumes.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+  mongo-keyfile:
+    image: alpine:3.20
+    command: sh -c "if [ ! -f /keyfile/mongo-keyfile ]; then apk add --no-cache openssl && openssl rand -base64 756 > /keyfile/mongo-keyfile && chmod 400 /keyfile/mongo-keyfile && chown 999:999 /keyfile/mongo-keyfile; fi"
+    volumes: [mongo-key:/keyfile]
+  mongodb:
+    image: mongo:8.0
+    command: ["mongod", "--replSet", "rs0", "--keyFile", "/keyfile/mongo-keyfile", "--bind_ip_all", "--auth"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-seek_root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-change-root-password}
+    volumes:
+      - mongo-data:/data/db
+      - mongo-key:/keyfile:ro
+    depends_on:
+      mongo-keyfile: {condition: service_completed_successfully}
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --host localhost -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval 'db.adminCommand({ping:1}).ok' | grep 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks: [commerce-private]
+  mongo-init:
+    image: mongo:8.0
+    restart: "no"
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-seek_root}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-change-root-password}
+      MONGO_APP_USERNAME: ${MONGO_APP_USERNAME:-seek_app}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:-change-app-password}
+    depends_on:
+      mongodb: {condition: service_healthy}
+    command: >-
+      bash -c "mongosh --host mongodb -u $$MONGO_ROOT_USERNAME -p $$MONGO_ROOT_PASSWORD --authenticationDatabase admin --eval
+      'try { rs.status() } catch(e) { rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"mongodb:27017\"}]}) }' &&
+      sleep 5 && mongosh --host mongodb -u $$MONGO_ROOT_USERNAME -p $$MONGO_ROOT_PASSWORD --authenticationDatabase admin --eval
+      'db=db.getSiblingDB(\"seekuperfumes\"); if(!db.getUser(\"'$$MONGO_APP_USERNAME'\")){db.createUser({user:\"'$$MONGO_APP_USERNAME'\",pwd:\"'$$MONGO_APP_PASSWORD'\",roles:[{role:\"readWrite\",db:\"seekuperfumes\"}]})}'"
+    networks: [commerce-private]
+  redis:
+    image: redis:7.4-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-change-redis-password}
+    volumes: [redis-data:/data]
+    networks: [commerce-private]
+  commerce:
+    build: ./commerce-service
+    ports: ["4100:4100"]
+    environment:
+      NODE_ENV: production
+      PORT: 4100
+      MONGODB_URI: "mongodb://${MONGO_APP_USERNAME:-seek_app}:${MONGO_APP_PASSWORD:-change-app-password}@mongodb:27017/seekuperfumes?authSource=seekuperfumes&replicaSet=rs0"
+      JWT_SECRET: ${ADMIN_JWT_SECRET:-replace-with-64-random-characters-before-production}
+      COOKIE_SECRET: ${ADMIN_COOKIE_SECRET:-replace-with-64-random-characters-before-production}
+      STOREFRONT_ORIGIN: "http://localhost:8000"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-change-redis-password}@redis:6379/0"
+    depends_on:
+      mongo-init: {condition: service_completed_successfully}
+      redis: {condition: service_started}
+    networks: [default, commerce-private]
+volumes:
+  seek-db:
+  mongo-data:
+  mongo-key:
+  redis-data:
+networks:
+  commerce-private:
+    internal: true
+

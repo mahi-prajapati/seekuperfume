@@ -1,0 +1,35 @@
+{% extends 'base.html' %}{% load static %}
+{% block content %}
+<section class="hero">
+  <img src="{% if hero.image %}{{ hero.image.url }}{% else %}{% static 'images/hero-seek.webp' %}{% endif %}" alt="A sculptural perfume bottle among rose, linen and sunlit plaster" fetchpriority="high">
+  <div class="hero-copy"><p class="eyebrow">{{ hero.eyebrow|default:'Seek your signature' }}</p><h1>{% if hero %}{{ hero.headline }}{% else %}A fragrance<br>that feels<br><i>like you.</i>{% endif %}</h1><p>{{ hero.subheadline|default:'Discover scents created for every mood, moment and version of you.' }}</p><div class="actions"><a class="button" href="{{ hero.cta_url|default:'/shop/' }}">{{ hero.cta_text|default:'Shop the collection' }}</a><a class="text-link" href="{% url 'finder' %}">Find your signature →</a></div></div>
+  <div class="hero-index"><span>01</span><i></i><span>03</span></div>
+</section>
+
+<nav class="filter-strip" aria-label="Quick shop"><a href="/shop/">All</a><a href="/shop/him/">Him</a><a href="/shop/her/">Her</a><a href="/shop/unisex/">Unisex</a><a href="/shop/fruity/">Fruity</a><a href="/shop/fresh/">Fresh</a><a href="/shop/vanilla/">Vanilla</a><a href="/shop/woody/">Woody</a><a href="/shop/floral/">Floral</a><a href="/shop/oud/">Oud</a></nav>
+
+<section class="section products-section">
+  <div class="section-head"><div><p class="eyebrow">Most sought after</p><h2>Best sellers</h2><p>The scents people keep coming back for.</p></div><a class="text-link" href="{% url 'best_sellers' %}">View all fragrances →</a></div>
+  <div class="product-grid">{% for product in bestsellers %}{% include 'store/_product_card.html' %}{% empty %}<p>Our first collection is being bottled.</p>{% endfor %}</div>
+</section>
+
+<section class="editorial-band">
+  <div class="editorial-copy"><p class="eyebrow">Shop the moment</p><h2>Scents for the<br>life you're living.</h2><p>Not every fragrance needs an occasion. Sometimes it creates one.</p><div class="moment-tabs" role="tablist"><button class="active">Best sellers</button><button>New arrivals</button><button>Seasonal favourites</button></div></div>
+  <div class="editorial-art crop-2"><img src="{% static 'images/product-sheet.webp' %}" alt="A woody fragrance arranged with cedar"></div>
+</section>
+
+<section class="section"><div class="section-head centered"><div><p class="eyebrow">Choose your instinct</p><h2>Made for character, not labels.</h2></div></div><div class="gender-grid"><a href="/shop/him/"><span>01</span><h3>Him</h3><p>Bold woods. Clean freshness. Quiet confidence.</p></a><a href="/shop/her/"><span>02</span><h3>Her</h3><p>Soft florals. Modern gourmands. Effortless elegance.</p></a><a href="/shop/unisex/"><span>03</span><h3>Unisex</h3><p>Scents without boundaries, worn entirely your way.</p></a></div></section>
+
+<section class="occasion-section section"><div class="section-head"><div><p class="eyebrow">Where will it take you?</p><h2>Shop by occasion</h2></div></div><div class="occasion-grid"><a href="/shop/everyday/"><b>Everyday</b><span>Easy. Familiar. Yours.</span></a><a href="/shop/date-night/"><b>Date night</b><span>Warm. Magnetic. Unforgettable.</span></a><a href="/shop/office/"><b>Office</b><span>Polished. Clean. Effortless.</span></a><a href="/shop/wedding/"><b>Wedding</b><span>Elegant. Memorable. Timeless.</span></a></div></section>
+
+<section class="notes-section section"><div class="section-head"><div><p class="eyebrow">Follow a note</p><h2>Begin with what draws you in.</h2></div></div><div class="note-list">{% for note in notes %}<a href="/shop/{{ note.slug }}/"><span>0{{ forloop.counter }}</span><h3>{{ note.name }}</h3><p>{{ note.family|default:'A signature ingredient' }}</p><b>→</b></a>{% endfor %}</div></section>
+
+<section class="story section"><div class="story-art"><img src="{% static 'images/hero-seek.webp' %}" alt="Sunlit fragrance studio still life" loading="lazy"></div><div><p class="eyebrow">Why we seek</p><h2>Finding a fragrance is a form of self-discovery.</h2><p>Some scents make you feel confident. Some make you nostalgic. Some become inseparable from a person, place or moment.</p><p>SEEKUPERFUMES exists to help you find yours.</p><a href="/about/" class="text-link">Our story →</a></div></section>
+
+<section class="finder-callout"><p class="eyebrow">The fragrance finder</p><h2>Not sure where<br>to begin?</h2><p>Tell us what moves you. We’ll translate instinct into scent.</p><a class="button light" href="{% url 'finder' %}">Find your signature</a></section>
+
+<section class="promise section"><div class="section-head centered"><div><p class="eyebrow">The Seek Promise</p><h2>Thoughtful at every note.</h2></div></div><div class="promise-grid"><article><span>01</span><h3>Crafted with intention</h3><p>Fragrances built around character and balance.</p></article><article><span>02</span><h3>Long-lasting performance</h3><p>Made for fragrance that stays with you.</p></article><article><span>03</span><h3>Easy discovery</h3><p>Find a scent that fits your world.</p></article><article><span>04</span><h3>Seamless delivery</h3><p>From our studio to your doorstep.</p></article></div></section>
+
+<section class="reviews-section section"><div class="section-head"><div><p class="eyebrow">Scents they stayed for</p><h2>In their own words.</h2></div><div class="big-rating">4.8 <span>★★★★★</span></div></div><div class="review-grid">{% for review in reviews %}<blockquote><div>★★★★★</div><h3>{{ review.title }}</h3><p>“{{ review.body }}”</p><footer>{{ review.name }} · Verified purchase<br><small>{{ review.product.name }}</small></footer></blockquote>{% empty %}<blockquote><div>★★★★★</div><h3>Feels distinctly mine</h3><p>“Warm without being heavy. I catch something new every time I wear it.”</p><footer>Aanya · Verified purchase<br><small>Vanilla Reverie</small></footer></blockquote><blockquote><div>★★★★★</div><h3>Quietly unforgettable</h3><p>“The dry down is beautiful—soft woods and clean skin.”</p><footer>Kabir · Verified purchase<br><small>Cedar Quiet</small></footer></blockquote>{% endfor %}</div></section>
+{% endblock %}
+
